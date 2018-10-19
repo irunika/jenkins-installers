@@ -1,0 +1,49 @@
+parallel (
+    "debian-build-stream" : {
+        node("ubuntuNode") {
+            echo "ubuntu node ${product} - ${version}"
+            git url: 'git@github.com:irunika/ie-utils.git'
+            dir('installers/ubuntu-x64/products') {
+                sh 'pwd'
+                // sh 'wget -q http://atuwa.private.wso2.com/WSO2-Products/api-manager/2.6.0/wso2am-2.6.0.zip'
+
+                // Remove this in the production
+                sh "cp /home/vagrant/${product}-${version}.zip ./"
+            }
+            dir('installers/ubuntu-x64') {
+                // Copying JDK
+                sh 'cp /home/vagrant/jdk-8u192-ea-bin-b02-linux-x64-19_jul_2018.tar.gz ./'
+                sh 'tar -xzf jdk-8u192-ea-bin-b02-linux-x64-19_jul_2018.tar.gz'
+                sh 'rm -f jdk-8u192-ea-bin-b02-linux-x64-19_jul_2018.tar.gz'
+
+                // Creating deb package
+                sh "bash build-ubuntu-x64.sh -n ${product} -v ${version} -p ./ -j jdk1.8.0_192"
+            }
+        }
+    },
+
+    "centos-build-stream" : {
+        node("centosNode") {
+            echo "centos node  ${product} - ${version}"
+            sh 'sudo yum -y install rpm-build'
+
+            git url: 'git@github.com:irunika/ie-utils.git'
+            dir('installers/centOS-x86_64/products') {
+                sh 'pwd'
+                // sh 'wget -q http://atuwa.private.wso2.com/WSO2-Products/api-manager/2.6.0/wso2am-2.6.0.zip'
+
+                // Remove this in the production
+                sh "cp /home/vagrant/${product}-${version}.zip ./"
+            }
+            dir('installers/centOS-x86_64') {
+                // Copying JDK
+                sh 'cp /home/vagrant/jdk-8u192-ea-bin-b02-linux-x64-19_jul_2018.tar.gz ./'
+                sh 'tar -xzf jdk-8u192-ea-bin-b02-linux-x64-19_jul_2018.tar.gz'
+                sh 'rm -f jdk-8u192-ea-bin-b02-linux-x64-19_jul_2018.tar.gz'
+
+                // Creating deb package
+                sh "bash build-centOS-x86_64.sh -n ${product} -v ${version} -p ./ -j jdk1.8.0_192"
+            }
+        }
+    }
+)

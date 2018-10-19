@@ -1,0 +1,43 @@
+pipeline {
+    agent {
+        label "macosNode"
+    }
+
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building..'
+                git url: 'git@github.com:irunika/ie-utils.git'
+                dir('installers/macOS-x64/products') {
+                    sh 'pwd'
+                    // sh 'wget -q http://atuwa.private.wso2.com/WSO2-Products/api-manager/2.6.0/wso2am-2.6.0.zip'
+
+                    // Remove this in the production
+                    sh "cp /Users/jenkins/${product}-${version}.zip ./"
+                }
+                dir('installers/macOS-x64') {
+                    // Copying JDK
+                    sh 'cp  /Users/jenkins/jdk-8u192-ea-bin-b02-macOS-x64-19_jul_2018.tar.gz ./'
+                    sh 'tar -xzf jdk-8u192-ea-bin-b02-macOS-x64-19_jul_2018.tar.gz'
+                    sh 'rm -f jdk-8u192-ea-bin-b02-macOS-x64-19_jul_2018.tar.gz'
+
+                    // Creating deb package
+                    sh "bash build-macos-x64.sh -n ${product} -v ${version} -l 'API Manager' -p ./ -j jdk1.8.0_192"
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Testing installer creation...'
+                dir('installers/macOS-x64') {
+                    sh "test -f ${product}/target/${product}-linux-installer-x64-${version}.deb"
+                }
+            }
+        }
+        stage('Upload') {
+            steps {
+                echo 'Uploading....'
+            }
+        }
+    }
+}

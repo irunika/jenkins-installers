@@ -1,0 +1,49 @@
+pipeline {
+    agent none
+    stages {
+        stage('initial-stage') {
+            agent {
+                label "master"
+            }
+            steps {
+                git url: 'git@github.com:irunika/ie-utils.git'
+                stash name: "ubuntu-installer", includes: "installers/"
+                stash name: "centos-installer", includes: "installers/"
+                stash name: "product", includes: "/home/irunika/wso2/products/wso2am-2.6.0.zip"
+            }
+        }
+
+        stage('build-product') {
+            parallel {
+                stage('ubuntu') {
+                    agent {
+                        label "ubuntuNode"
+                    }
+                    steps {
+                        echo "Ubuntu pkg creation"
+                        unstash "ubuntu-installer"
+                        dir("installers") {
+                            unstash "product"
+                            sh "ls -l"
+                        }
+                    }
+                }
+
+                stage('centos') {
+                    agent {
+                        label "centosNode"
+                    }
+                    steps {
+                        echo "centos pkg creation"
+                        unstash "centos-installer"
+                        dir("installers") {
+                            unstash "product"
+                            sh "ls -l"
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+}
